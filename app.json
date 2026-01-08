@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "MiAppUniversal",
-    "slug": "MiAppUniversal",
+    "name": "app-notas",
+    "slug": "app-notas",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "miappuniversal",
+    "scheme": "app-notas",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
