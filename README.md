@@ -1,50 +1,64 @@
-# Welcome to your Expo app 👋
+# 📝 NoteStack – React Native Task Manager
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**NoteStack** es una aplicación moderna de gestión de tareas construida con **React Native** y **Expo**. Diseñada con un enfoque en la experiencia de usuario (UX), minimalismo y una arquitectura de componentes profesional totalmente tipada con **TypeScript**.
 
-## Get started
+---
 
-1. Install dependencies
+## ✨ Características Principales
 
+* **🎨 UI Adaptativa (Modo Claro/Oscuro):** Sincronización inteligente de tema entre pantallas que respeta las preferencias del usuario.
+* **📂 Categorización Dinámica:** Organiza tus tareas por Trabajo, Personal, Salud e Ideas con iconos y colores personalizados.
+* **💡 Frases Inspiradoras:** Integración con API externa (ZenQuotes) para mostrar una dosis diaria de motivación.
+* **📊 Filtros de Estado:** Visualiza rápidamente tus notas: Todas, Pendientes o Completadas.
+* **📱 Diseño Cross-Platform:** Optimizado tanto para dispositivos móviles (iOS/Android) como para Web.
+* **⚡ Arquitectura de Componentes:** Código modular y escalable con interfaces estrictas de TypeScript.
+
+---
+
+## 🛠️ Stack Tecnológico
+
+* **Framework:** Expo (React Native)
+* **Lenguaje:** TypeScript
+* **Navegación:** Expo Router (Navegación basada en archivos)
+* **Almacenamiento:** Async Storage
+* **Iconos:** Expo Vector Icons (Ionicons)
+
+---
+
+## 🚀 Instalación y Uso
+
+1. **Clonar el repositorio:**
+   ```bash
+   git clone https://github.com/CandidoAg/app-notas.git
+   cd app-notas
+   ```
+2. **Instalar dependencias:**
    ```bash
    npm install
    ```
-
-2. Start the app
-
+3. **Iniciar el proyecto:**
    ```bash
    npx expo start
    ```
+## 📂 Estructura del Proyecto
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```text
+app-notas/
+├── app/                  # Rutas y Pantallas (Index, Details)
+├── components/           # Componentes Atómicos (TaskItem, Header, Input...)
+├── constants/            # Configuración de Temas, Colores y Categorías
+├── assets/               # Recursos estáticos (Imágenes, Fuentes)
+└── README.md             # Documentación
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-## Learn more
+## 🚧 Roadmap (Próximos Pasos)
 
-To learn more about developing your project with Expo, look at the following resources:
+- [ ] 🔐 **Firebase Auth:** Implementación de Login (Email/Password).
+- [ ] ☁️ **Cloud Firestore:** Persistencia de datos en la nube en tiempo real.
+- [ ] 🔔 **Push Notifications:** Recordatorios inteligentes de tareas.
+- [ ] 🧪 **Unit Testing:** Pruebas de componentes con Jest.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+---
+Desarrollado por **CandidoAg** – 2026.
