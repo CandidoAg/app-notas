@@ -1,13 +1,14 @@
 import { Stack } from 'expo-router';
+import { ThemeProvider } from '../context/ThemeContext';
 
 export default function RootLayout() {
   return (
-    <Stack screenOptions={{ 
-      headerTintColor: '#5856D6', 
-      headerTitleStyle: { fontWeight: 'bold' } 
-    }}>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="details" options={{ headerShown: false }} />
-    </Stack>
+    <ThemeProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="notes/index" />
+        <Stack.Screen name="notes/details" />
+      </Stack>
+    </ThemeProvider>
   );
 }

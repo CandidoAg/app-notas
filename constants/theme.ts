@@ -11,6 +11,8 @@ export const Colors = {
     actionBox: '#F8F8F8',
     border: 'rgba(0,0,0,0.05)',
     cardHeaderDefault: '#F2F2F7',
+    loginButton: '#5856D6',
+    loginbuttonText: '#FFFFFF',
     status: {
       completed: '#34C759',      
       pending: '#8E8E93',        
@@ -30,6 +32,8 @@ export const Colors = {
     actionBox: '#3A3A3C',
     border: 'rgba(255,255,255,0.1)',
     cardHeaderDefault: '#2C2C2E',
+    loginButton: '#7572FF',
+    loginbuttonText: '#FFFFFF',
     status: {
       completed: '#32D74B',     
       pending: '#9BA1A6',

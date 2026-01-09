@@ -1,14 +1,14 @@
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
+import { ThemeSwitch } from './ThemeSwitch';
 
 interface DetailHeaderProps {
-  theme: any;
-  currentTheme: string | null | undefined;
   onBack: () => void;
-  onToggleTheme: () => void;
 }
 
-export function DetailHeader({ theme, currentTheme, onBack, onToggleTheme }: DetailHeaderProps) {  
+export function DetailHeader({ onBack }: DetailHeaderProps) {  
+  const { theme, themeMode, toggleTheme } = useTheme();
   return (
     <View style={styles.header}>
       <TouchableOpacity onPress={onBack} style={styles.backButton}>
@@ -16,9 +16,7 @@ export function DetailHeader({ theme, currentTheme, onBack, onToggleTheme }: Det
         <Text style={[styles.backText, { color: theme.tint }]}>Volver</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={onToggleTheme} style={[styles.themeBtn, { backgroundColor: theme.icon + '20' }]}>
-        <Ionicons name={currentTheme === 'dark' ? 'moon' : 'sunny'} size={20} color={theme.tint} />
-      </TouchableOpacity>
+      <ThemeSwitch themeMode={themeMode} onToggle={toggleTheme} />
     </View>
   );
 }

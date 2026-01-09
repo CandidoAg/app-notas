@@ -4,10 +4,10 @@ import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 
-import { DetailHeader } from '../components/DetailHeader';
-import { InfoRow } from '../components/InfoRow';
-import { Colors } from '../constants/theme';
-import { getCategoryById } from '../constants/tasks';
+import { DetailHeader } from '../../components/DetailHeader';
+import { InfoRow } from '../../components/InfoRow';
+import { Colors } from '../../constants/theme';
+import { getCategoryById } from '../../constants/tasks';
 
 export default function DetailsScreen() {
   const router = useRouter();

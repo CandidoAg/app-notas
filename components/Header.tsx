@@ -1,19 +1,13 @@
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { StyleSheet, Text, View } from 'react-native';
+import { ThemeSwitch } from './ThemeSwitch';
+import { useTheme } from '../context/ThemeContext';
 
-interface HeaderProps {
-  theme: any;
-  themeMode: string;
-  toggleTheme: () => void;
-}
-
-export function Header({ theme, themeMode, toggleTheme }: HeaderProps) {
+export function Header() {
+  const { theme, themeMode, toggleTheme } = useTheme();
   return (
     <View style={styles.header}>
       <Text style={[styles.title, { color: theme.text }]}>Mis Notas</Text>
-      <TouchableOpacity onPress={toggleTheme} style={[styles.themeBtn, { backgroundColor: theme.icon + '20' }]} >
-        <Ionicons name={themeMode === 'dark' ? 'moon' : 'sunny'} size={20} color={theme.tint} />
-      </TouchableOpacity>
+      <ThemeSwitch themeMode={themeMode} onToggle={toggleTheme} />
     </View>
   );
 }
