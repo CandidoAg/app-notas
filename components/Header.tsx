@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { ThemeSwitch } from './ThemeSwitch';
 import { useTheme } from '../context/ThemeContext';
+import { LogoutButton } from './LogoutButton';
 
 export function Header() {
   const { theme, themeMode, toggleTheme } = useTheme();
@@ -8,6 +9,7 @@ export function Header() {
     <View style={styles.header}>
       <Text style={[styles.title, { color: theme.text }]}>Mis Notas</Text>
       <ThemeSwitch themeMode={themeMode} onToggle={toggleTheme} />
+      <LogoutButton />
     </View>
   );
 }

@@ -1,17 +1,33 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { StyleSheet, View, FlatList, Platform, Alert, LayoutAnimation, UIManager, useColorScheme, SafeAreaView,
-         TouchableOpacity,Text} from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter, useFocusEffect } from 'expo-router';
+import React, { useState, useEffect } from 'react';
+import { 
+  StyleSheet, View, FlatList, Platform, Alert, LayoutAnimation, 
+  UIManager, SafeAreaView, TouchableOpacity, Text 
+} from 'react-native';
+import { useRouter } from 'expo-router';
+import { useTheme } from '../../context/ThemeContext';
+
+import { db, auth } from '../../lib/firebaseConfig';
+import { 
+  collection, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  doc, 
+  query, 
+  where, 
+  orderBy, 
+  onSnapshot, 
+  serverTimestamp 
+} from 'firebase/firestore';
+
 import { Header } from '../../components/Header';
 import { QuoteBox } from '../../components/QuoteBox';
 import { TaskInput } from '../../components/TaskInput';
 import { TaskItem } from '../../components/TaskItem';
 import { CategoryModal } from '../../components/CategoryModal';
-import { CATEGORIES, getCategoryById } from '../../constants/tasks';
-import { Colors } from '../../constants/theme';
-import { db } from '../../lib/firebaseConfig';
-import { collection, addDoc } from 'firebase/firestore';
+import { CATEGORIES } from '../../constants/tasks';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { onAuthStateChanged } from 'firebase/auth';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -20,12 +36,11 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 interface Task {
   id: string;
   value: string;
-  createdAt: string;
+  createdAt: any;
   completed: boolean;
   category: string;
+  userId: string;
 }
-
-
 
 export default function Index() {
   const [task, setTask] = useState('');
@@ -34,50 +49,50 @@ export default function Index() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'completed'>('all');
   const [selectedCat, setSelectedCat] = useState(CATEGORIES[0]);
   const [showMenu, setShowMenu] = useState(false);
-  const [themeMode, setThemeMode] = useState<'light' | 'dark'>();
-
-  const systemColorScheme = useColorScheme();
-  const currentTheme = themeMode || systemColorScheme || 'light';
-  const theme = Colors[currentTheme === 'dark' ? 'dark' : 'light'];
 
   const router = useRouter();
+  const { theme } = useTheme();
 
-  useFocusEffect(
-    useCallback(() => {
-      const syncTheme = async () => {
-        const savedTheme = await AsyncStorage.getItem('@theme_mode');
-        if (savedTheme && savedTheme !== themeMode) {
-          setThemeMode(savedTheme as any);
-        }
-      };
-      syncTheme();
-    }, [themeMode])
-  );
+useEffect(() => {
+  const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+    if (user) {      
+      const q = query(
+        collection(db, 'tasks'),
+        where('userId', '==', user.uid),
+        orderBy('createdAt', 'desc')
+      );
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const [savedTasks, savedTheme] = await Promise.all([
-          AsyncStorage.getItem('@my_tasks'),
-          AsyncStorage.getItem('@theme_mode')
-        ]);
+      const unsubscribeFirestore = onSnapshot(q, (snapshot) => {        
+        const tasks: Task[] = [];
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          tasks.push({
+            id: doc.id,
+            value: data.value,
+            completed: data.completed,
+            category: data.category,
+            userId: data.userId,
+            createdAt: data.createdAt?.toDate 
+              ? data.createdAt.toDate().toLocaleDateString() 
+              : 'Guardando...',
+          } as Task);
+        });
 
-        if (savedTasks) setTaskList(JSON.parse(savedTasks));
-        if (savedTheme) setThemeMode(savedTheme as any);
-      } catch (e) { console.error(e); }
-    };
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setTaskList(tasks);
+      });
 
-    loadData();
-    fetchQuote();
-  }, []);
+      return () => unsubscribeFirestore();
+      
+    } else {
+      setTaskList([]);
+    }
+  });
 
+  fetchQuote();
 
-
-  useEffect(() => {
-    AsyncStorage.setItem('@my_tasks', JSON.stringify(taskList));
-  }, [taskList]);
-
-
+  return () => unsubscribeAuth();
+}, []);
 
   const fetchQuote = async () => {
     try {
@@ -89,124 +104,149 @@ export default function Index() {
     }
   };
 
-
-
-  const toggleTheme = () => {
-    const nextMode = currentTheme === 'light' ? 'dark' : 'light';
-    setThemeMode(nextMode);
-    AsyncStorage.setItem('@theme_mode', nextMode);
-  };
-
-
-
-  const handleAddTask = () => {
-    if (task.trim().length > 0) {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
-      const newTask: Task = { 
-        id: Date.now().toString(), 
-        value: task,
-        createdAt: new Date().toLocaleDateString(),
-        completed: false,
-        category: selectedCat.id,
-      };
-
-      setTaskList([newTask, ...taskList]);
-      setTask('');
+  const handleAddTask = async () => {
+    if (task.trim().length > 0 && auth.currentUser) {
+      try {
+        await addDoc(collection(db, 'tasks'), {
+          value: task,
+          completed: false,
+          category: selectedCat.id,
+          userId: auth.currentUser.uid,
+          createdAt: serverTimestamp(),
+        });
+        setTask('');
+      } catch (e) {
+        console.error("Error añadiendo tarea:", e);
+        Alert.alert("Error", "No se pudo guardar la nota en la nube.");
+      }
     }
   };
 
-
-
-  const toggleTask = (id: string) => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setTaskList(taskList.map((t) => t.id === id ? { ...t, completed: !t.completed } : t));
+  const toggleTask = async (id: string, currentStatus: boolean) => {
+    try {
+      const taskRef = doc(db, 'tasks', id);
+      await updateDoc(taskRef, {
+        completed: !currentStatus
+      });
+    } catch (e) {
+      console.error("Error actualizando tarea:", e);
+    }
   };
 
   const removeTask = (id: string) => {
-    const deleteAction = () => {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-      setTaskList(taskList.filter(item => item.id !== id));
+    const deleteAction = async () => {
+      try {
+        await deleteDoc(doc(db, 'tasks', id));
+      } catch (e) {
+        console.error("Error eliminando tarea:", e);
+      }
     };
 
     if (Platform.OS === 'web') {
-      if (confirm("¿Eliminar?")) deleteAction();
+      if (confirm("¿Eliminar esta nota?")) deleteAction();
     } else {
-      Alert.alert("Eliminar", "¿Seguro?", [{ text: "No" }, { text: "Sí", onPress: deleteAction }]);
+      Alert.alert("Eliminar", "¿Seguro que quieres borrar esta nota?", [
+        { text: "No" }, 
+        { text: "Sí", onPress: deleteAction }
+      ]);
     }
   };
 
   const filteredTasks = taskList.filter(t => {
     if (filter === 'pending') return !t.completed;
     if (filter === 'completed') return t.completed;
-    
     return true; 
   });
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.content}>
-        <Header theme={theme} themeMode={currentTheme} toggleTheme={toggleTheme} />
+        <View style={styles.topRow}>
+          <Header />
+        </View>
+
         <QuoteBox quote={quote} theme={theme} />
 
         <View style={[styles.filterContainer, { backgroundColor: theme.filterBar }]}>
           {(['all', 'pending', 'completed'] as const).map((f) => (
-            <TouchableOpacity key={f} onPress={() => setFilter(f)} 
-                              style={[styles.filterButton, filter === f && { backgroundColor: theme.filterBtnActive }]}>
-              <View>
-                <Text style={[styles.filterText, { color: filter === f ? theme.tint : theme.icon }]}>
-                  {f === 'all' ? 'Todas' : f === 'pending' ? 'Pendientes' : 'Hechas'}
-                </Text>
-              </View>
+            <TouchableOpacity 
+              key={f} 
+              onPress={() => setFilter(f)} 
+              style={[styles.filterButton, filter === f && { backgroundColor: theme.filterBtnActive }]}
+            >
+              <Text style={[styles.filterText, { color: filter === f ? theme.tint : theme.icon }]}>
+                {f === 'all' ? 'Todas' : f === 'pending' ? 'Pendientes' : 'Hechas'}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
 
-        <TaskInput value={task} onChange={setTask} onAdd={handleAddTask} theme={theme} selectedCat={selectedCat} 
-                   onOpenMenu={() => setShowMenu(true)}/>
+        <TaskInput 
+          value={task} 
+          onChange={setTask} 
+          onAdd={handleAddTask} 
+          theme={theme} 
+          selectedCat={selectedCat} 
+          onOpenMenu={() => setShowMenu(true)}
+        />
 
-        <FlatList data={filteredTasks} keyExtractor={item => item.id} showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContent} style={styles.list}
+        <FlatList 
+          data={filteredTasks} 
+          keyExtractor={item => item.id} 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent} 
+          style={styles.list}
           renderItem={({ item }) => (
-            <TaskItem item={item}  theme={theme} onToggle={toggleTask} onDelete={removeTask}
-                      onPress={async () => { 
-                        try { 
-                          await AsyncStorage.setItem('@selected_task', JSON.stringify(item)); 
-                          router.push('/notas/details'); 
-                        } catch (e) { 
-                          console.error("Error al guardar tarea para detalle", e); 
-                        } 
-                      }}
+            <TaskItem 
+              item={item}  
+              theme={theme} 
+              onToggle={() => toggleTask(item.id, item.completed)} 
+              onDelete={() => removeTask(item.id)}
+              onPress={async () => { 
+                try { 
+                  router.push({
+                    pathname: '/notas/details',
+                    params: { id: item.id } 
+                  });
+                } catch (e) { 
+                  console.error("Error al navegar al detalle", e); 
+                } 
+              }}
             />
           )}
         />
 
-        <CategoryModal visible={showMenu} theme={theme} selectedCat={selectedCat} onClose={() => setShowMenu(false)}
+        <CategoryModal 
+          visible={showMenu} 
+          theme={theme} 
+          selectedCat={selectedCat} 
+          onClose={() => setShowMenu(false)}
           onSelect={(cat: any) => {
             setSelectedCat(cat);
             setShowMenu(false);
-          }}/>
+          }}
+        />
       </View>
     </SafeAreaView>
   );
 }
 
-
-
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    paddingTop: Platform.OS === 'android' ? 40 : 0, 
-  },
-
+  container: { flex: 1, paddingTop: Platform.OS === 'android' ? 40 : 0 },
   content: { 
     flex: 1, 
-    paddingTop: 60, 
+    paddingTop: 20, 
     paddingHorizontal: 20, 
     width: '100%',
     maxWidth: 600,
     alignSelf: 'center'
   },
-
+  topRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   filterContainer: { 
     flexDirection: 'row', 
     marginBottom: 20, 
@@ -214,24 +254,8 @@ const styles = StyleSheet.create({
     padding: 4, 
     width: '100%' 
   },
-
-  filterButton: { 
-    flex: 1, 
-    paddingVertical: 10, 
-    alignItems: 'center', 
-    borderRadius: 10 
-  },
-
-  filterText: { 
-    fontSize: 13, 
-    fontWeight: '600' 
-  },
-
-  list: { 
-    width: '100%' 
-  },
-
-  listContent: { 
-    paddingBottom: 40 
-  },
+  filterButton: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: 10 },
+  filterText: { fontSize: 13, fontWeight: '600' },
+  list: { width: '100%' },
+  listContent: { paddingBottom: 40 },
 });

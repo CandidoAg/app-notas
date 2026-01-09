@@ -40,7 +40,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   );
 };
 
-// Hook personalizado para usar el tema fácilmente
 export const useTheme = () => {
   const context = useContext(ThemeContext);
   if (!context) throw new Error('useTheme debe usarse dentro de un ThemeProvider');

@@ -2,6 +2,7 @@ import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 import { ThemeSwitch } from './ThemeSwitch';
+import { LogoutButton } from './LogoutButton';
 
 interface DetailHeaderProps {
   onBack: () => void;
@@ -15,8 +16,9 @@ export function DetailHeader({ onBack }: DetailHeaderProps) {
         <Ionicons name="arrow-back" size={24} color={theme.tint} />
         <Text style={[styles.backText, { color: theme.tint }]}>Volver</Text>
       </TouchableOpacity>
-
+  
       <ThemeSwitch themeMode={themeMode} onToggle={toggleTheme} />
+      <LogoutButton />
     </View>
   );
 }

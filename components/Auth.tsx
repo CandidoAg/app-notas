@@ -14,13 +14,23 @@ export function AuthComponent() {
   const [password, setPassword] = useState('');
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const { theme, themeMode, toggleTheme } = useTheme();
 
+  const toggleAuthMode = () => {
+    setEmail('');
+    setPassword('');
+    
+    setErrorMessage(''); 
+    setIsLogin(!isLogin);
+  };
   const handleAuth = async () => {
     const cleanEmail = email.trim();
+    setErrorMessage(null);
+
     if (!cleanEmail || !password) {
-      Alert.alert("Campos requeridos", "Por favor, rellena todos los datos.");
+      setErrorMessage("Por favor, rellena todos los datos.");
       return;
     }
 
@@ -34,7 +44,6 @@ export function AuthComponent() {
     } catch (error: any) {
       console.log("Error Firebase:", error.code);
       
-      let msg = "Ocurrió un error inesperado.";
       const errorMessages: Record<string, string> = {
         'auth/invalid-email': "El formato del correo no es válido.",
         'auth/invalid-credential': "Email o contraseña incorrectos.",
@@ -43,7 +52,7 @@ export function AuthComponent() {
         'auth/network-request-failed': "Error de red. Revisa tu conexión."
       };
       
-      Alert.alert("Error de acceso", errorMessages[error.code] || msg);
+      setErrorMessage(errorMessages[error.code] || "Ocurrió un error inesperado.");
     } finally {
       setLoading(false);
     }
@@ -62,10 +71,16 @@ export function AuthComponent() {
               {isLogin ? 'Iniciar Sesión' : 'Registro'}
             </Text>
 
+            {errorMessage && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{errorMessage}</Text>
+              </View>
+            )}
+
             <TextInput
               style={[styles.input, { backgroundColor: theme.background, color: theme.text }]}
               placeholder="Correo electrónico"
-              placeholderTextColor={theme.text}
+              placeholderTextColor={themeMode === 'dark' ? '#777' : '#999'}
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
@@ -74,7 +89,7 @@ export function AuthComponent() {
             <TextInput
               style={[styles.input, { backgroundColor: theme.background, color: theme.text }]}
               placeholder="Contraseña"
-              placeholderTextColor={theme.text}
+              placeholderTextColor={themeMode === 'dark' ? '#777' : '#999'}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -84,13 +99,19 @@ export function AuthComponent() {
               style={[styles.button, { backgroundColor: theme.loginButton }]}
               onPress={handleAuth}
               disabled={loading}>
-              {loading ? (<ActivityIndicator color={theme.text} />) : (
+              {loading ? (<ActivityIndicator color="#fff" />) : (
                 <Text style={styles.buttonText}>{isLogin ? 'ENTRAR' : 'CREAR CUENTA'}</Text>
               )}
             </TouchableOpacity>
 
-            <Pressable onPress={() => setIsLogin(!isLogin)} style={styles.switch}>
-              <Text style={[styles.switchText, { color: theme.text }]}>
+            <Pressable 
+              onPress={() => {
+                setIsLogin(!isLogin);
+                setErrorMessage(null);
+              }} 
+              style={styles.switch}
+            >
+              <Text onPress={toggleAuthMode} style={[styles.switchText, { color: theme.text }]}>
                 {isLogin ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
               </Text>
             </Pressable>
@@ -102,12 +123,7 @@ export function AuthComponent() {
 };
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginBottom: 10,
-  },
-  headerIcons: { position: 'absolute', top: 50, right: 30 },
+  header: { flexDirection: 'row', justifyContent: 'flex-end', marginBottom: 10 },
   card: { width: '100%', padding: 25, borderRadius: 20, shadowOpacity: 0.1, elevation: 4},
   title: { fontSize: 28, fontWeight: 'bold', marginBottom: 25, textAlign: 'center' },
   input: { padding: 15, borderRadius: 12, marginBottom: 15, fontSize: 16 },
@@ -115,18 +131,21 @@ const styles = StyleSheet.create({
   buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
   switch: { marginTop: 20},
   switchText: { textAlign: 'center', fontWeight: 'bold', textDecorationLine: 'underline' },
-  container: {
-    flex: 1,
-    paddingTop: Platform.OS === 'android' ? 40 : 0,
+  container: { flex: 1, paddingTop: Platform.OS === 'android' ? 40 : 0 },
+  content: { flex: 1, paddingTop: 60, paddingHorizontal: 20, width: '100%', maxWidth: 600, alignSelf: 'center' },
+  
+  errorContainer: {
+    backgroundColor: 'rgba(255, 59, 48, 0.1)', 
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#FF3B30',
   },
-
-  content: {
-    flex: 1,
-    paddingTop: 60,
-    paddingHorizontal: 20,
-    width: '100%',
-    maxWidth: 600,
-    alignSelf: 'center'
+  errorText: {
+    color: '#FF3B30',
+    fontSize: 14,
+    textAlign: 'center',
+    fontWeight: '600',
   },
-  themeBtn: { padding: 10, borderRadius: 12 },
 });
